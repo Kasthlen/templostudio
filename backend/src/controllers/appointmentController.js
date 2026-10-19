@@ -18,8 +18,9 @@ exports.createAppointment = async (req, res) => {
     const appointment = await Appointment.create(appointmentData);
     console.log('Cita creada exitosamente:', appointment._id);
 
-    // Enviar emails
-    await sendEmails(appointment, clientName, clientEmail, clientPhone, service, date, time, notes);
+    // Enviar emails en background (no esperar respuesta)
+    sendEmails(appointment, clientName, clientEmail, clientPhone, service, date, time, notes)
+      .catch(err => console.error('Error en envío de emails (background):', err));
 
     res.status(201).json({
       success: true,
