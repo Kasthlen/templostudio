@@ -2,8 +2,10 @@ services:
   - type: web
     name: templostudio
     env: node
-    buildCommand: cd backend && npm install
-    startCommand: cd backend && npm start
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    cwd: backend
     envVars:
       - key: NODE_ENV
         value: production
