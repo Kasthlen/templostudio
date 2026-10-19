@@ -1,0 +1,31 @@
+services:
+  - type: web
+    name: templostudio
+    env: node
+    buildCommand: cd backend && npm install
+    startCommand: cd backend && npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: MONGODB_URI
+        sync: false # Configurar en el dashboard de Render
+      - key: JWT_SECRET
+        sync: false # Configurar en el dashboard de Render
+      - key: EMAIL_HOST
+        value: smtp.gmail.com
+      - key: EMAIL_PORT
+        value: 587
+      - key: EMAIL_USER
+        sync: false # Configurar en el dashboard de Render
+      - key: EMAIL_PASSWORD
+        sync: false # Configurar en el dashboard de Render
+      - key: EMAIL_FROM
+        sync: false # Configurar en el dashboard de Render
+      - key: ADMIN_EMAIL
+        sync: false # Configurar en el dashboard de Render
+      - key: ADMIN_PASSWORD
+        sync: false # Configurar en el dashboard de Render
+      - key: FRONTEND_URL
+        value: https://templostudio.onrender.com
