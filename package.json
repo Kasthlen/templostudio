@@ -1,0 +1,12 @@
+{
+  "name": "templostudio",
+  "version": "1.0.0",
+  "description": "TemploStudio - Barbería y peluquería integral",
+  "scripts": {
+    "start": "cd backend && npm start",
+    "install": "cd backend && npm install"
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  }
+}

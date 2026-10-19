@@ -3,9 +3,8 @@ services:
     name: templostudio
     env: node
     plan: free
-    buildCommand: npm install
-    startCommand: npm start
-    cwd: backend
+    buildCommand: cd backend && npm install
+    startCommand: cd backend && npm start
     envVars:
       - key: NODE_ENV
         value: production
