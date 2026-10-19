@@ -1,7 +1,7 @@
 const Appointment = require('../models/Appointment');
 const sendEmail = require('../utils/email');
 
-exports.createAppointment = (req, res) => {
+exports.createAppointment = async (req, res) => {
   const { clientName, clientEmail, clientPhone, service, date, time, notes } = req.body;
 
   const appointmentData = {
@@ -14,23 +14,29 @@ exports.createAppointment = (req, res) => {
     notes,
   };
 
-  Appointment.create(appointmentData).then(appointment => {
+  try {
+    const appointment = await Appointment.create(appointmentData);
+    console.log('Cita creada exitosamente:', appointment._id);
+
     // Enviar emails
-    sendEmails(appointment, clientName, clientEmail, clientPhone, service, date, time, notes);
+    await sendEmails(appointment, clientName, clientEmail, clientPhone, service, date, time, notes);
 
     res.status(201).json({
       success: true,
       data: appointment,
     });
-  }).catch(error => {
+  } catch (error) {
+    console.error('Error creando cita:', error);
     res.status(500).json({
       success: false,
       message: error.message,
     });
-  });
+  }
 };
 
-function sendEmails(appointment, clientName, clientEmail, clientPhone, service, date, time, notes) {
+async function sendEmails(appointment, clientName, clientEmail, clientPhone, service, date, time, notes) {
+  console.log('Iniciando envío de emails para cita:', appointment._id);
+
   // Enviar email al propietario (admin)
   const adminEmailHTML = `
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
@@ -49,11 +55,17 @@ function sendEmails(appointment, clientName, clientEmail, clientPhone, service, 
     </div>
   `;
 
-  sendEmail({
-    email: process.env.EMAIL_USER,
-    subject: 'Nueva Cita Agendada - TemploStudio',
-    html: adminEmailHTML,
-  }).catch(err => console.error('Error enviando email al admin:', err));
+  try {
+    console.log('Enviando email al admin:', process.env.EMAIL_USER);
+    await sendEmail({
+      email: process.env.EMAIL_USER,
+      subject: 'Nueva Cita Agendada - TemploStudio',
+      html: adminEmailHTML,
+    });
+    console.log('Email al admin enviado exitosamente');
+  } catch (err) {
+    console.error('Error enviando email al admin:', err);
+  }
 
   // Enviar email de confirmación al cliente
   const clientEmailHTML = `
@@ -71,11 +83,19 @@ function sendEmails(appointment, clientName, clientEmail, clientPhone, service, 
     </div>
   `;
 
-  sendEmail({
-    email: clientEmail,
-    subject: 'Cita Confirmada - TemploStudio',
-    html: clientEmailHTML,
-  }).catch(err => console.error('Error enviando email al cliente:', err));
+  try {
+    console.log('Enviando email al cliente:', clientEmail);
+    await sendEmail({
+      email: clientEmail,
+      subject: 'Cita Confirmada - TemploStudio',
+      html: clientEmailHTML,
+    });
+    console.log('Email al cliente enviado exitosamente');
+  } catch (err) {
+    console.error('Error enviando email al cliente:', err);
+  }
+
+  console.log('Proceso de envío de emails completado');
 }
 
 exports.getAppointments = (req, res) => {

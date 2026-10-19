@@ -6,6 +6,7 @@ const sendEmail = async (options) => {
       host: process.env.EMAIL_HOST,
       port: process.env.EMAIL_PORT,
       user: process.env.EMAIL_USER,
+      passwordSet: !!process.env.EMAIL_PASSWORD,
     });
 
     const transporter = nodemailer.createTransport({
@@ -32,11 +33,13 @@ const sendEmail = async (options) => {
       html: options.html,
     };
 
+    console.log('Enviando email a:', options.email);
     const info = await transporter.sendMail(message);
     console.log('Email enviado exitosamente: %s', info.messageId);
     return info;
   } catch (error) {
-    console.error('Error enviando email:', error);
+    console.error('Error enviando email:', error.message);
+    console.error('Detalles del error:', error);
     throw error;
   }
 };
