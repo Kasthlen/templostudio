@@ -37,9 +37,13 @@ const postJSON = async (url, body, headers = {}) => {
   return text;
 };
 
+// Limpia espacios, saltos de línea y comillas que se cuelan al pegar
+// valores en el dashboard de Render.
+const cleanEnv = (value = '') => value.trim().replace(/^(['"])(.*)\1$/, '$2').trim();
+
 const sendWithAppsScript = async ({ email, subject, html, replyTo }) => {
-  const text = await postJSON(process.env.EMAIL_WEBHOOK_URL, {
-    secret: process.env.EMAIL_WEBHOOK_SECRET,
+  const text = await postJSON(cleanEnv(process.env.EMAIL_WEBHOOK_URL), {
+    secret: cleanEnv(process.env.EMAIL_WEBHOOK_SECRET),
     to: email,
     subject,
     html,
@@ -54,7 +58,13 @@ const sendWithAppsScript = async ({ email, subject, html, replyTo }) => {
     // el script no se publicó con acceso "Cualquier usuario".
     throw new Error(`Respuesta inesperada de Apps Script (revisa que el acceso sea "Cualquier usuario"): ${text.slice(0, 200)}`);
   }
-  if (!data.success) throw new Error(`Apps Script: ${data.error}`);
+  if (!data.success) {
+    // Pista para depurar sin exponer el secreto: su longitud tras limpiarlo
+    const hint = /secreto/i.test(data.error)
+      ? ` (EMAIL_WEBHOOK_SECRET tiene ${cleanEnv(process.env.EMAIL_WEBHOOK_SECRET).length} caracteres; debe ser idéntico a SECRET en Code.gs)`
+      : '';
+    throw new Error(`Apps Script: ${data.error}${hint}`);
+  }
   return { messageId: 'apps-script' };
 };
 
