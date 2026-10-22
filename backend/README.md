@@ -69,7 +69,7 @@ El dashboard está disponible en: `http://localhost:5000/dashboard.html`
 
 Credenciales por defecto:
 - Email: admin@templostudio.com
-- Password: la definida en `ADMIN_PASSWORD` (mínimo 12 caracteres)
+- Password: la definida en `ADMIN_PASSWORD` (temporal; se cambia desde el dashboard con *Cambiar contraseña*)
 
 ⚠️ Cambia estas credenciales en producción
 

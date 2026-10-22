@@ -12,7 +12,7 @@ Antes de desplegar, necesitas configurar las siguientes variables de entorno en 
 - **EMAIL_PASSWORD**: Tu contraseña de aplicación de Gmail (NO la escribas aquí: configúrala solo en el dashboard de Render)
 - **EMAIL_FROM**: Remitente del email (TemploStudio <kasthlen97@gmail.com>)
 - **ADMIN_EMAIL**: admin@templostudio.com
-- **ADMIN_PASSWORD**: Contraseña del dashboard (mínimo 12 caracteres; si la cambias en Render, se actualiza al reiniciar)
+- **ADMIN_PASSWORD**: Contraseña inicial/temporal del dashboard. El cliente la cambia desde el dashboard (botón *Cambiar contraseña*) y los reinicios no la sobrescriben. Si la olvida, cambiar esta variable en Render la restablece.
 
 ### 2. Pasos para Desplegar en Render
 

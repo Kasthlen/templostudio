@@ -267,6 +267,64 @@
             padding: 2rem;
             color: #D4AF66;
         }
+
+        .nav-actions {
+            display: flex;
+            gap: 0.75rem;
+        }
+
+        .secondary-btn {
+            background: transparent;
+            color: #D4AF66;
+            border: 1px solid #D4AF66;
+        }
+
+        .modal {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 1rem;
+            z-index: 10;
+        }
+
+        .modal.hidden {
+            display: none;
+        }
+
+        .modal .login-box h2 {
+            color: #D4AF66;
+            margin-bottom: 1.5rem;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 0.75rem;
+        }
+
+        .modal-actions .login-btn {
+            flex: 1;
+        }
+
+        .success {
+            color: #22c55e;
+            font-size: 0.9rem;
+            margin-top: 1rem;
+            text-align: center;
+        }
+
+        @media (max-width: 600px) {
+            .navbar {
+                flex-direction: column;
+                gap: 0.75rem;
+            }
+
+            .appointments-table {
+                overflow-x: auto;
+            }
+        }
     </style>
 </head>
 <body>
@@ -293,8 +351,38 @@
     <div id="dashboard" class="hidden">
         <nav class="navbar">
             <h1>🏛️ TemploStudio Dashboard</h1>
-            <button class="logout-btn" onclick="logout()">Cerrar Sesión</button>
+            <div class="nav-actions">
+                <button class="logout-btn secondary-btn" onclick="openPasswordModal()">Cambiar contraseña</button>
+                <button class="logout-btn" onclick="logout()">Cerrar Sesión</button>
+            </div>
         </nav>
+
+        <!-- Cambiar contraseña -->
+        <div id="passwordModal" class="modal hidden">
+            <div class="login-box">
+                <h2>Cambiar contraseña</h2>
+                <form id="passwordForm">
+                    <div class="form-group">
+                        <label for="currentPassword">Contraseña actual</label>
+                        <input type="password" id="currentPassword" autocomplete="current-password" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="newPassword">Nueva contraseña (mínimo 10 caracteres)</label>
+                        <input type="password" id="newPassword" autocomplete="new-password" minlength="10" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="confirmPassword">Repite la nueva contraseña</label>
+                        <input type="password" id="confirmPassword" autocomplete="new-password" minlength="10" required>
+                    </div>
+                    <div class="modal-actions">
+                        <button type="button" class="login-btn secondary-btn" onclick="closePasswordModal()">Cancelar</button>
+                        <button type="submit" class="login-btn">Guardar</button>
+                    </div>
+                    <div id="passwordError" class="error hidden"></div>
+                    <div id="passwordSuccess" class="success hidden"></div>
+                </form>
+            </div>
+        </div>
 
         <div class="container">
             <div class="stats">
@@ -378,6 +466,9 @@
         });
 
         function showDashboard() {
+            document.getElementById('loginError').classList.add('hidden');
+            document.getElementById('loading').textContent = 'Cargando citas...';
+            document.getElementById('loading').classList.remove('hidden');
             document.getElementById('loginForm').classList.add('hidden');
             document.getElementById('dashboard').classList.remove('hidden');
             loadAppointments();
@@ -390,6 +481,28 @@
             document.getElementById('loginForm').classList.remove('hidden');
         }
 
+        // Los datos de las citas vienen de un formulario público: se escapan
+        // antes de insertarlos en el HTML para evitar XSS en el dashboard.
+        function escapeHTML(value) {
+            return String(value ?? '').replace(/[&<>"']/g, c => ({
+                '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+            }[c]));
+        }
+
+        // Sesión expirada o usuario sin permisos: volver al login con un aviso
+        function handleAuthError(response) {
+            if (response.status === 401 || response.status === 403) {
+                logout();
+                const loginError = document.getElementById('loginError');
+                loginError.textContent = response.status === 401
+                    ? 'Tu sesión ha expirado, inicia sesión de nuevo'
+                    : 'Esta cuenta no tiene acceso al dashboard';
+                loginError.classList.remove('hidden');
+                return true;
+            }
+            return false;
+        }
+
         async function loadAppointments() {
             try {
                 const response = await fetch(`${API_URL}/appointments`, {
@@ -398,15 +511,72 @@
                     }
                 });
 
+                if (handleAuthError(response)) return;
                 const data = await response.json();
 
                 if (data.success) {
                     displayAppointments(data.data);
+                } else {
+                    document.getElementById('loading').textContent = 'Error cargando citas: ' + data.message;
                 }
             } catch (error) {
                 console.error('Error loading appointments:', error);
+                document.getElementById('loading').textContent = 'Error al conectar con el servidor';
             }
         }
+
+        function openPasswordModal() {
+            document.getElementById('passwordForm').reset();
+            document.getElementById('passwordError').classList.add('hidden');
+            document.getElementById('passwordSuccess').classList.add('hidden');
+            document.getElementById('passwordModal').classList.remove('hidden');
+            document.getElementById('currentPassword').focus();
+        }
+
+        function closePasswordModal() {
+            document.getElementById('passwordModal').classList.add('hidden');
+        }
+
+        document.getElementById('passwordForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const errorBox = document.getElementById('passwordError');
+            const successBox = document.getElementById('passwordSuccess');
+            const showError = (msg) => {
+                successBox.classList.add('hidden');
+                errorBox.textContent = msg;
+                errorBox.classList.remove('hidden');
+            };
+
+            const currentPassword = document.getElementById('currentPassword').value;
+            const newPassword = document.getElementById('newPassword').value;
+            if (newPassword !== document.getElementById('confirmPassword').value) {
+                return showError('Las contraseñas nuevas no coinciden');
+            }
+
+            try {
+                const response = await fetch(`${API_URL}/auth/password`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ currentPassword, newPassword })
+                });
+                const data = await response.json();
+
+                if (data.success) {
+                    errorBox.classList.add('hidden');
+                    document.getElementById('passwordForm').reset();
+                    successBox.textContent = 'Contraseña actualizada. Úsala la próxima vez que inicies sesión.';
+                    successBox.classList.remove('hidden');
+                    setTimeout(closePasswordModal, 2500);
+                } else {
+                    showError(data.message);
+                }
+            } catch (error) {
+                showError('Error al conectar con el servidor');
+            }
+        });
 
         function displayAppointments(appointments) {
             document.getElementById('loading').classList.add('hidden');
@@ -429,29 +599,31 @@
             document.getElementById('completedAppointments').textContent = stats.completada;
 
             appointments.forEach(appointment => {
+                const id = escapeHTML(appointment._id);
+                const status = escapeHTML(appointment.status);
                 const row = document.createElement('tr');
                 row.innerHTML = `
                     <td>
-                        <strong>${appointment.clientName}</strong><br>
-                        <small>${appointment.clientEmail}</small>
+                        <strong>${escapeHTML(appointment.clientName)}</strong><br>
+                        <small>${escapeHTML(appointment.clientEmail)}</small>
                     </td>
-                    <td>${appointment.service}</td>
-                    <td>${new Date(appointment.date).toLocaleDateString('es-ES')}</td>
-                    <td>${appointment.time}</td>
-                    <td>${appointment.clientPhone}</td>
-                    <td><span class="status ${appointment.status}">${appointment.status}</span></td>
+                    <td>${escapeHTML(appointment.service)}</td>
+                    <td>${new Date(appointment.date).toLocaleDateString('es-ES', { timeZone: 'UTC' })}</td>
+                    <td>${escapeHTML(appointment.time)}</td>
+                    <td>${escapeHTML(appointment.clientPhone)}</td>
+                    <td><span class="status ${status}">${status}</span></td>
                     <td>
                         <div class="actions">
                             ${appointment.status === 'pendiente' ? `
-                                <button class="action-btn btn-confirm" onclick="updateStatus('${appointment._id}', 'confirmada')">✓</button>
+                                <button class="action-btn btn-confirm" onclick="updateStatus('${id}', 'confirmada')">✓</button>
                             ` : ''}
                             ${appointment.status === 'confirmada' ? `
-                                <button class="action-btn btn-complete" onclick="updateStatus('${appointment._id}', 'completada')">✓</button>
+                                <button class="action-btn btn-complete" onclick="updateStatus('${id}', 'completada')">✓</button>
                             ` : ''}
                             ${appointment.status !== 'cancelada' ? `
-                                <button class="action-btn btn-cancel" onclick="updateStatus('${appointment._id}', 'cancelada')">✗</button>
+                                <button class="action-btn btn-cancel" onclick="updateStatus('${id}', 'cancelada')">✗</button>
                             ` : ''}
-                            <button class="action-btn btn-delete" onclick="deleteAppointment('${appointment._id}')">🗑</button>
+                            <button class="action-btn btn-delete" onclick="deleteAppointment('${id}')">🗑</button>
                         </div>
                     </td>
                 `;

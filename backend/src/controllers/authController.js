@@ -129,3 +129,54 @@ exports.getMe = async (req, res) => {
     });
   }
 };
+
+// @desc    Cambiar la contraseña del usuario actual
+// @route   PUT /api/auth/password
+// @access  Private
+exports.updatePassword = async (req, res) => {
+  try {
+    const { currentPassword, newPassword } = req.body;
+
+    if (!currentPassword || !newPassword) {
+      return res.status(400).json({
+        success: false,
+        message: 'Indica la contraseña actual y la nueva',
+      });
+    }
+    if (typeof newPassword !== 'string' || newPassword.length < 10) {
+      return res.status(400).json({
+        success: false,
+        message: 'La nueva contraseña debe tener al menos 10 caracteres',
+      });
+    }
+
+    const user = await User.findById(req.user.id).select('+password');
+
+    // Se exige la contraseña actual: un token robado no basta para cambiarla
+    if (!(await user.matchPassword(currentPassword))) {
+      return res.status(401).json({
+        success: false,
+        message: 'La contraseña actual no es correcta',
+      });
+    }
+    if (currentPassword === newPassword) {
+      return res.status(400).json({
+        success: false,
+        message: 'La nueva contraseña debe ser distinta de la actual',
+      });
+    }
+
+    user.password = newPassword; // el hook pre('save') la cifra
+    await user.save();
+
+    res.status(200).json({
+      success: true,
+      message: 'Contraseña actualizada correctamente',
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};

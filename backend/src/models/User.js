@@ -29,6 +29,12 @@ const userSchema = new mongoose.Schema({
     type: String,
     trim: true,
   },
+  // Hash del último ADMIN_PASSWORD aplicado desde Render (solo admin).
+  // Permite saber si la variable cambió sin pisar la contraseña elegida en el dashboard.
+  envPasswordHash: {
+    type: String,
+    select: false,
+  },
   createdAt: {
     type: Date,
     default: Date.now,
