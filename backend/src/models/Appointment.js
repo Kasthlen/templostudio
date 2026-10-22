@@ -11,6 +11,7 @@ const appointmentSchema = new mongoose.Schema({
     required: [true, 'Por favor ingresa el email del cliente'],
     lowercase: true,
     trim: true,
+    match: [/^[^\s@]+@[^\s@]+\.[^\s@]+$/, 'Por favor ingresa un email válido'],
   },
   clientPhone: {
     type: String,

@@ -9,10 +9,10 @@ Antes de desplegar, necesitas configurar las siguientes variables de entorno en 
 - **MONGODB_URI**: Tu connection string de MongoDB Atlas
 - **JWT_SECRET**: Una clave secreta para JWT (usa una cadena larga y aleatoria)
 - **EMAIL_USER**: Tu correo de Gmail (kasthlen97@gmail.com)
-- **EMAIL_PASSWORD**: Tu contraseña de aplicación de Gmail (eanw ymqj ymop dhei)
+- **EMAIL_PASSWORD**: Tu contraseña de aplicación de Gmail (NO la escribas aquí: configúrala solo en el dashboard de Render)
 - **EMAIL_FROM**: Remitente del email (TemploStudio <kasthlen97@gmail.com>)
 - **ADMIN_EMAIL**: admin@templostudio.com
-- **ADMIN_PASSWORD**: admin123456
+- **ADMIN_PASSWORD**: Contraseña del dashboard (mínimo 12 caracteres; si la cambias en Render, se actualiza al reiniciar)
 
 ### 2. Pasos para Desplegar en Render
 
@@ -36,12 +36,26 @@ Asegúrate de que tu cluster de MongoDB Atlas:
 - Tiene whitelist de IPs configurada para permitir conexiones desde cualquier IP (0.0.0.0/0)
 - El usuario de base de datos tiene los permisos necesarios
 
-### 4. Gmail
+### 4. Emails (importante)
 
-Para que los emails funcionen:
-- Verificación en dos pasos debe estar activa en tu cuenta de Gmail
-- La contraseña debe ser una "Contraseña de aplicación" (no tu contraseña normal)
-- La contraseña de aplicación actual es: `eanw ymqj ymop dhei`
+Render en plan gratuito **bloquea los puertos SMTP (25, 465, 587)** desde septiembre de 2025,
+así que Gmail por SMTP no funciona en producción. El backend envía por HTTPS usando el primer
+proveedor configurado:
+
+1. **Google Apps Script** (recomendado, gratis, envía desde la propia cuenta Gmail, ~100 correos/día):
+   - Abre https://script.google.com con la cuenta Gmail del negocio → *Nuevo proyecto*.
+   - Pega el contenido de `backend/apps-script/Code.gs` y cambia `SECRET` por una cadena larga aleatoria.
+   - Ejecuta la función `probar` y acepta los permisos (llegará un correo de prueba).
+   - *Implementar → Nueva implementación → Aplicación web*. Ejecutar como **Yo**, acceso **Cualquier usuario**.
+   - En Render agrega `EMAIL_WEBHOOK_URL` (la URL que termina en `/exec`) y `EMAIL_WEBHOOK_SECRET` (el mismo `SECRET`).
+2. **Brevo** (alternativa, 300 correos/día): crea cuenta, verifica el remitente de `EMAIL_FROM` y
+   agrega `BREVO_API_KEY` en Render.
+3. **SMTP** (`EMAIL_HOST`, `EMAIL_USER`, `EMAIL_PASSWORD`): solo en local o en un plan de pago de Render.
+
+Opcional: `ADMIN_NOTIFY_EMAIL` define quién recibe el aviso de cada nueva cita (por defecto `EMAIL_USER`).
+
+Al arrancar, el log de Render muestra `Proveedor de email: ...` para confirmar cuál se está usando.
+Las contraseñas y claves **nunca** se escriben en archivos del repositorio, solo en el dashboard de Render.
 
 ## Estructura del Proyecto
 

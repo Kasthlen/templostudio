@@ -36,10 +36,9 @@ const userSchema = new mongoose.Schema({
 });
 
 // Encriptar contraseña antes de guardar
-userSchema.pre('save', async function (next) {
-  if (!this.isModified('password')) {
-    next();
-  }
+// (Mongoose 9: los hooks async ya no reciben next, basta con return)
+userSchema.pre('save', async function () {
+  if (!this.isModified('password')) return;
   const salt = await bcrypt.genSalt(10);
   this.password = await bcrypt.hash(this.password, salt);
 });

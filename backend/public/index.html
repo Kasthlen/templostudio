@@ -222,12 +222,12 @@ $("#of").innerHTML=OFF.map(o=>`<div class="off rv"><h3>${o.t}</h3>${o.i.map(([n,
 $("#hc").innerHTML=[["hombre","Hombre / Barbería","Cortes, barba y cejas."],["mujer","Mujer / Peluquería","Cortes, cejas y peinados."],["coloracion","Coloración y mechas","Tintes, mechas, platinos y balayage."],["tratamientos","Tratamientos","Alisados, botox capilar, permanente y cuidado capilar."]].map(([i,t,d])=>`<a class="cat rv" href="#${i}"><h3>${t}</h3><p>${d}</p><span>Ver servicios →</span></a>`).join("");
 $("#tm").innerHTML=TEAM.map(m=>`<article class="mb rv"><div class="pt">${m.img?`<img src="${m.img}" alt="${m.n}">`:`<img class="p0" src="${$(".lm").src}" alt="">`}</div><h3>${m.n}</h3><span>${m.r}</span></article>`).join("");
 $("#nl").innerHTML=PG.map(([i,t])=>`<li><a href="#${i}">${t}</a></li>`).join("");
-$("#nl").insertAdjacentHTML("beforeend",`<li class="mo"><a href="${CFG.ig}" target="_blank" rel="noopener">Instagram</a></li><li class="mo"><a href="${CFG.api}/dashboard.html" target="_blank" rel="noopener">Iniciar Sesión / Dashboard</a></li>`);
+$("#nl").insertAdjacentHTML("beforeend",`<li class="mo"><a href="${CFG.ig}" target="_blank" rel="noopener">Instagram</a></li><li class="mo"><a href="/dashboard.html" target="_blank" rel="noopener">Iniciar Sesión / Dashboard</a></li>`);
 $("#s").innerHTML='<option value="">Otro / consultar</option>'+CAT.flatMap(c=>c.i.map(i=>`<option>${GN(c.g)} · ${i[0]}</option>`)).join("");
 ["#hwa","#hwa2","#bw"].forEach(s=>0);
 $("#ci").href=$("#fi").href=CFG.ig;
 $("#mb").href="https://www.google.com/maps/search/?api=1&query="+encodeURIComponent(CFG.addr);
-$("#ic").insertAdjacentHTML("afterbegin",`<a class="ico" href="${CFG.ig}" target="_blank" rel="noopener" aria-label="Instagram">${IC.ig}</a><a class="ico" href="${CFG.api}/dashboard.html" target="_blank" rel="noopener" aria-label="Dashboard">${IC.dash}</a>`);
+$("#ic").insertAdjacentHTML("afterbegin",`<a class="ico" href="${CFG.ig}" target="_blank" rel="noopener" aria-label="Instagram">${IC.ig}</a><a class="ico" href="/dashboard.html" target="_blank" rel="noopener" aria-label="Dashboard">${IC.dash}</a>`);
 $("#fm").onsubmit=async e=>{e.preventDefault();
 const appointmentData={
   clientName:$("#n").value,
@@ -239,7 +239,7 @@ const appointmentData={
   notes:""
 };
 try{
-  const response=await fetch(CFG.api+"/api/appointments",{
+  const response=await fetch("/api/appointments",{
     method:"POST",
     headers:{"Content-Type":"application/json"},
     body:JSON.stringify(appointmentData)

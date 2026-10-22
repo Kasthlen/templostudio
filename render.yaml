@@ -14,6 +14,15 @@ services:
         sync: false # Configurar en el dashboard de Render
       - key: JWT_SECRET
         sync: false # Configurar en el dashboard de Render
+      # Render free bloquea SMTP: el envío real va por HTTPS (ver backend/apps-script/Code.gs)
+      - key: EMAIL_WEBHOOK_URL
+        sync: false # URL /exec de la app web de Google Apps Script
+      - key: EMAIL_WEBHOOK_SECRET
+        sync: false # Mismo valor que SECRET en Code.gs
+      - key: BREVO_API_KEY
+        sync: false # Alternativa opcional a Apps Script
+      - key: ADMIN_NOTIFY_EMAIL
+        sync: false # Correo que recibe los avisos de nuevas citas
       - key: EMAIL_HOST
         value: smtp.gmail.com
       - key: EMAIL_PORT

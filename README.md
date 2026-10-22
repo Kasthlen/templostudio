@@ -69,7 +69,7 @@ mongodb+srv://usuario:password@cluster.mongodb.net/database?retryWrites=true&w=m
 
 Credenciales por defecto (configurables en `.env`):
 - Email: admin@templostudio.com
-- Password: admin123456
+- Password: la definida en `ADMIN_PASSWORD` (mínimo 12 caracteres)
 
 ⚠️ **IMPORTANTE**: Cambia estas credenciales en producción
 

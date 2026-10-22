@@ -37,4 +37,5 @@ const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, () => {
   console.log(`Servidor corriendo en puerto ${PORT}`);
+  console.log(`Proveedor de email: ${require('./utils/email').getProvider() || 'NINGUNO (no se enviarán correos)'}`);
 });
